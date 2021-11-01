@@ -12,7 +12,7 @@ public class DiscussPostService {
     @Autowired
     private DiscussPostMapper discussPostMapper;
 
-    public List<DiscussPost> findDiscussPost(int userId, int offer, int limit) {
+    public List<DiscussPost> findDiscussPosts(int userId, int offer, int limit) {
         return discussPostMapper.selectDiscussPosts(userId, offer, limit);
     }
 
