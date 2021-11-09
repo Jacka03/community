@@ -63,8 +63,12 @@ public class MapperTest {
         System.out.println(loginTicket);
 
         // loginTicket.setStatus(1);
-
         loginTicketMapper.updateStatus("qwer", 1);
     }
 
+    @Test
+    public void test() {
+        int[] arr = new int[0];
+        System.out.println(0 >> 1);
+    }
 }
