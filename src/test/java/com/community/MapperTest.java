@@ -59,7 +59,7 @@ public class MapperTest {
 
     @Test
     public void testSelectLoginTicket() {
-        LoginTicket loginTicket = loginTicketMapper.selectLoginTicket("qwer");
+        LoginTicket loginTicket = loginTicketMapper.selectByTicket("qwer");
         System.out.println(loginTicket);
 
         // loginTicket.setStatus(1);
