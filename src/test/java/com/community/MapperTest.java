@@ -1,12 +1,15 @@
 package com.community;
 
 import com.community.dao.DiscussPostMapper;
+import com.community.dao.LoginTicketMapper;
 import com.community.dao.UserMapper;
 import com.community.entity.DiscussPost;
+import com.community.entity.LoginTicket;
 import com.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.quartz.QuartzTransactionManager;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -37,6 +40,31 @@ public class MapperTest {
     public void testSelectUser() {
         User user = userMapper.selectById(1);
         System.out.println(user);
+    }
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
+
+    @Test
+    public void testInsertLoginTicket() {
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(111);
+        loginTicket.setTicket("qwer");
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + 1000 * 60 * 10));
+
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+    }
+
+    @Test
+    public void testSelectLoginTicket() {
+        LoginTicket loginTicket = loginTicketMapper.selectLoginTicket("qwer");
+        System.out.println(loginTicket);
+
+        // loginTicket.setStatus(1);
+
+        loginTicketMapper.updateStatus("qwer", 1);
     }
 
 }
