@@ -104,7 +104,7 @@
 							</div>
 						</div>
 					</div>
-				</div>		
+				</div>
 				<!-- 提示框 -->
 				<div class="modal fade" id="hintModal" tabindex="-1" role="dialog" aria-labelledby="hintModalLabel" aria-hidden="true">
 					<div class="modal-dialog modal-lg" role="document">
@@ -117,7 +117,7 @@
 							</div>
 						</div>
 					</div>
-				</div>				
+				</div>
 				
 				<!-- 私信列表 -->
 				<ul class="list-unstyled">
@@ -132,7 +132,7 @@
 								<span class="float-right text-muted font-size-12" th:text="${#dates.format(map.conversation.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-28 14:13:25</span>
 							</h6>
 							<div>
-								<a href="letter-detail.html" th:utext="${map.conversation.content}">米粉车, 你来吧!</a>
+								<a  th:href="@{|/letter/detail/${map.conversation.conversationId}|}" th:utext="${map.conversation.content}">米粉车, 你来吧!</a>
 								<ul class="d-inline font-size-12 float-right">
 									<li class="d-inline ml-2"><a href="#" class="text-primary">共<i th:text="${map.letterCount}">5</i>条会话</a></li>
 								</ul>
