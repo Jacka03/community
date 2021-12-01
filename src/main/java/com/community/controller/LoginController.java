@@ -109,7 +109,10 @@ public class LoginController implements CommunityConstant {
     public String login(Model model, String username, String password, String code, boolean rememberme,
                         HttpSession session, HttpServletResponse response) {
 
-        // System.out.println(username+"_"+password);
+        // System.out.println(username);
+        // if(username.isBlank()) {
+        //     return "/site/login";
+        // }
         // 判断验证码
         String kaptcha = (String) session.getAttribute("kaptcha");
         if(StringUtils.isBlank(code) || StringUtils.isBlank(kaptcha) || !code.equalsIgnoreCase(kaptcha)) {

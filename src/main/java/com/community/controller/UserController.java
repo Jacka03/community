@@ -2,9 +2,11 @@ package com.community.controller;
 
 import com.community.annotation.LoginRequired;
 import com.community.entity.User;
+import com.community.service.LikeService;
 import com.community.service.UserService;
 import com.community.util.CommunityUtil;
 import com.community.util.HostHolder;
+import com.community.util.RedisKeyUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +44,9 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -107,6 +112,24 @@ public class UserController {
         } catch (IOException e) {
             logger.error("读取头像失败", e.getMessage());
         }
+    }
+
+    // 个人主页
+    @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
+    public String getProfilePage(@PathVariable("userId") int userId, Model model) {
+        final User user = userService.findUserById(userId);
+        if(user == null) {
+            throw new RuntimeException("该用户不存在!");
+        }
+
+        // 用户
+        model.addAttribute("user", user);
+
+        // 点赞数量
+        final int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+
+        return "/site/profile";
     }
 
 }

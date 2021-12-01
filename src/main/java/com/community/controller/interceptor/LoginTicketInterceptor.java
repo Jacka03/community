@@ -3,6 +3,7 @@ package com.community.controller.interceptor;
 import com.community.entity.LoginTicket;
 import com.community.entity.User;
 import com.community.service.UserService;
+import com.community.util.CommunityConstant;
 import com.community.util.CookieUtil;
 import com.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 
 @Component
-public class LoginTicketInterceptor implements HandlerInterceptor {
+public class LoginTicketInterceptor implements HandlerInterceptor, CommunityConstant {
 
     @Autowired
     private UserService userService;
@@ -25,15 +26,22 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 从cookie中获取凭证
         String ticket = CookieUtil.getValue(request, "ticket");
-        if(ticket != null) {
+
+        if (ticket != null) {
+            // 查询凭证
             LoginTicket loginTicket = userService.findLoginTicket(ticket);
-            if(loginTicket != null && loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())) {
+            // 检查凭证是否有效
+            if (loginTicket != null && loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())) {
+                // 根据凭证查询用户
                 User user = userService.findUserById(loginTicket.getUserId());
-                // System.out.println(user);
+                // 在本次请求中持有用户
                 hostHolder.setUser(user);
+                // userService.login(user.getUsername(), user.getPassword(), DEFAULT_EXPIRED_SECONDS);
             }
         }
+
         return true;
     }
 
