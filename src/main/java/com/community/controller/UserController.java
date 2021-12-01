@@ -2,8 +2,10 @@ package com.community.controller;
 
 import com.community.annotation.LoginRequired;
 import com.community.entity.User;
+import com.community.service.FollowService;
 import com.community.service.LikeService;
 import com.community.service.UserService;
+import com.community.util.CommunityConstant;
 import com.community.util.CommunityUtil;
 import com.community.util.HostHolder;
 import com.community.util.RedisKeyUtil;
@@ -28,7 +30,7 @@ import java.io.IOException;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant {
 
     @Value("${community.path.upload}")
     private String uploadPath;
@@ -47,6 +49,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -128,6 +133,21 @@ public class UserController {
         // 点赞数量
         final int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount", likeCount);
+
+        // 关注数量
+        final long followeeCount = followService.findFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+
+        // 粉丝数量
+        final long followerCount = followService.findFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+
+        // 是否关注
+        boolean hasFollowed = false;
+        if(hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
 
         return "/site/profile";
     }
