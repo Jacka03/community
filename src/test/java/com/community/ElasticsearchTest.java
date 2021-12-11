@@ -116,6 +116,8 @@ public class ElasticsearchTest {
         for (DiscussPost discussPost : discussPosts) {
             System.out.println(discussPost);
         }
+
+
     }
 
 
