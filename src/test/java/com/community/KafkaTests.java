@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Calendar;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @ContextConfiguration(classes = CommunityApplication.class)
@@ -29,6 +31,7 @@ public class KafkaTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Calendar calendar = Calendar.getInstance();
     }
 
 }
