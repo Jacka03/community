@@ -46,6 +46,14 @@
         update discuss_post set comment_count = #{commentCount} where id = #{id}
     </update>
 
+    <update id="updateType">
+        update discuss_post set type = #{type} where id = #{id}
+    </update>
+
+    <update id="updateStatus">
+        update discuss_post set status = #{status} where id = #{id}
+    </update>
+
 
     <!--<sql id="selectFields">-->
     <!--    id, user_id, title, content, type, status, create_time, comment_count, score-->

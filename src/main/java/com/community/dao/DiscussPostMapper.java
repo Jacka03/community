@@ -33,10 +33,36 @@ public interface DiscussPostMapper {
 
     int insertDiscussPost(DiscussPost discussPost);
 
+    /**
+     * 根据id获取帖子
+     * @param id 帖子id
+     * @return
+     */
     DiscussPost selectDiscussPostById(int id);
 
     /**
      * 更新帖子评论的数量
+     * @param id 帖子id
+     * @param commentCount 评论数量
+     * @return
      */
     int updateCommentCount(int id, int commentCount);
+
+
+    /**
+     * 根据id修改帖子类型
+     * @param id 帖子id
+     * @param type 修改后的类型
+     * @return
+     */
+    int updateType(int id, int type);
+
+    /**
+     * 根据id修改帖子状态
+     * @param id 帖子id
+     * @param status 修改后的状态
+     * @return
+     */
+    int updateStatus(int id, int status);
+
 }
