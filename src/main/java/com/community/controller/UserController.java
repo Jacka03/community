@@ -1,5 +1,12 @@
 package com.community.controller;
 
+import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
+import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
+import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.community.annotation.LoginRequired;
 import com.community.entity.User;
 import com.community.service.FollowService;
@@ -9,6 +16,8 @@ import com.community.util.CommunityConstant;
 import com.community.util.CommunityUtil;
 import com.community.util.HostHolder;
 import com.community.util.RedisKeyUtil;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +28,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
@@ -55,12 +65,130 @@ public class UserController implements CommunityConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
+    /*@Value("${aliyun.AccessKeyID}")
+    private String AccessKeyId;
+
+    @Value("${aliyun.AccessKeySecret}")
+    private String accessKeySecret;
+
+    @Value("${aliyun.bucket.header.name}")
+    private String headerBucketName;
+
+    @Value("${aliyun.bucket.header.endpoint}")
+    private String endpoint;
+
+    @Value("${aliyun.bucket.header.oss}")
+    private String oss;
+
+    @Value("${aliyun.roleArn}")
+    private String roleArn;*/
+
+    @Value("${qiniu.key.access}")
+    private String accessKey;
+
+    @Value("${qiniu.key.secret}")
+    private String secretKey;
+
+    @Value("${qiniu.bucket.header.name}")
+    private String headerBucketName;
+
+    @Value("${quniu.bucket.header.url}")
+    private String headerBucketUrl;
+
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
-    public String getSettingPage() {
+    public String getSettingPage(Model model) {
+        /*// STS接入地址，例如sts.cn-hangzhou.aliyuncs.com。
+        // 填写步骤1生成的访问密钥AccessKey ID和AccessKey Secret。
+        // 填写步骤3获取的角色ARN。
+        // 自定义角色会话名称，用来区分不同的令牌，例如可填写为SessionTest。
+        String roleSessionName = "community";
+        // 以下Policy用于限制仅允许使用临时访问凭证向目标存储空间examplebucket上传文件。
+        // 临时访问凭证最后获得的权限是步骤4设置的角色权限和该Policy设置权限的交集，即仅允许将文件上传至目标存储空间examplebucket下的exampledir目录。
+        String policy = "{\n" +
+                "    \"Version\": \"1\", \n" +
+                "    \"Statement\": [\n" +
+                "        {\n" +
+                "            \"Action\": [\n" +
+                "                \"oss:PutObject\"\n" +
+                "            ], \n" +
+                "            \"Resource\": [\n" +
+                "                \"acs:oss:*:*:"+headerBucketName+"/*\" \n" +
+                "            ], \n" +
+                "            \"Effect\": \"Allow\"\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}";
+        try {
+            // regionId表示RAM的地域ID。以华东1（杭州）地域为例，regionID填写为cn-hangzhou。也可以保留默认值，默认值为空字符串（""）。
+            String regionId = "cn-zhangjiakou";
+            // 添加endpoint。
+            DefaultProfile.addEndpoint(regionId, "Sts", endpoint);
+            // 构造default profile。
+            IClientProfile profile = DefaultProfile.getProfile(regionId, AccessKeyId, accessKeySecret);
+            // 构造client。
+            DefaultAcsClient client = new DefaultAcsClient(profile);
+            final AssumeRoleRequest request = new AssumeRoleRequest();
+            request.setSysMethod(MethodType.POST);
+            request.setRoleArn(roleArn);
+            request.setRoleSessionName(roleSessionName);
+            // 如果policy为空，则用户将获得该角色下所有权限。
+            request.setPolicy(policy);
+            // 设置临时访问凭证的有效时间为3600秒。
+            request.setDurationSeconds(3600L);
+            final AssumeRoleResponse response = client.getAcsResponse(request);
+            model.addAttribute("Expiration", response.getCredentials().getExpiration());
+            model.addAttribute("AccessKeyId", response.getCredentials().getAccessKeyId());
+            model.addAttribute("AccessKeySecret", response.getCredentials().getAccessKeySecret());
+            model.addAttribute("SecurityToken", response.getCredentials().getSecurityToken());
+            model.addAttribute("RequestId", response.getRequestId());
+            model.addAttribute("regionId", regionId);
+            model.addAttribute("bucket", headerBucketName);
+
+            // 上传文件名称
+            String fileName = CommunityUtil.generateUUID();
+            model.addAttribute("fileName", fileName);
+
+            System.out.println("Expiration: " + response.getCredentials().getExpiration());
+            System.out.println("Access Key Id: " + response.getCredentials().getAccessKeyId());
+            System.out.println("Access Key Secret: " + response.getCredentials().getAccessKeySecret());
+            System.out.println("Security Token: " + response.getCredentials().getSecurityToken());
+            System.out.println("RequestId: " + response.getRequestId());
+
+        } catch (ClientException e) {
+            e.printStackTrace();
+        }*/
+
+        // 上传文件名称
+        String fileName = CommunityUtil.generateUUID();
+        // 设置响应信息
+        StringMap policy = new StringMap();
+        policy.put("returnBody", CommunityUtil.getJSONString(0));
+        // 生成上传凭证
+        Auth auth = Auth.create(accessKey, secretKey);
+        String uploadToken = auth.uploadToken(headerBucketName, fileName, 3600, policy);
+
+        model.addAttribute("uploadToken", uploadToken);
+        model.addAttribute("fileName", fileName);
+
         return "/site/setting";
     }
 
+    // 更新头像路径
+    @RequestMapping(path = "/header/url", method = RequestMethod.POST)
+    @ResponseBody
+    public String updateHeaderUrl(String fileName) {
+        if (StringUtils.isBlank(fileName)) {
+            return CommunityUtil.getJSONString(1, "文件名不能为空!");
+        }
+
+        String url = headerBucketUrl + "/" + fileName;
+        userService.updateHeader(hostHolder.getUser().getId(), url);
+
+        return CommunityUtil.getJSONString(0);
+    }
+
+    // 不使用
     @LoginRequired
     @RequestMapping(path = "/upload", method = RequestMethod.POST)
     public String updateHeader(MultipartFile headerImage, Model model) {
@@ -98,6 +226,7 @@ public class UserController implements CommunityConstant {
         return "redirect:/index";
     }
 
+    // 不使用
     @RequestMapping(path = "/header/{fileName}", method = RequestMethod.GET)
     public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {
         fileName = uploadPath + "/" + fileName;

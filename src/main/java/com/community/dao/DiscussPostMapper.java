@@ -18,7 +18,8 @@ public interface DiscussPostMapper {
      */
     List<DiscussPost> selectDiscussPosts(@Param("userId") int userId,
                                          @Param("offset") int offset,
-                                         @Param("limit") int limit);
+                                         @Param("limit") int limit,
+                                         @Param("orderMode") int orderMode);
 
     /**
      * 查询帖子函数
@@ -64,5 +65,14 @@ public interface DiscussPostMapper {
      * @return
      */
     int updateStatus(int id, int status);
+
+
+    /**
+     * 根据id修改帖子分数
+     * @param id
+     * @param score
+     * @return
+     */
+    int updateScore(int id, double score);
 
 }
