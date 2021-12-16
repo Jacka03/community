@@ -48,7 +48,7 @@ public class LikeService {
     }
 
     // 查询某实体点赞数量
-    public long findEntityLIkeCount(int entityType, int entityId) {
+    public long findEntityLikeCount(int entityType, int entityId) {
         String entityLikeKey = RedisKeyUtil.getEntityLikeKey(entityType, entityId);
         return redisTemplate.opsForSet().size(entityLikeKey);
     }
