@@ -5,6 +5,7 @@ import com.community.entity.Page;
 import com.community.entity.User;
 import com.community.service.DiscussPostService;
 import com.community.service.LikeService;
+import com.community.service.ReadingService;
 import com.community.service.UserService;
 import com.community.util.CommunityConstant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class HomeController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private ReadingService readingService;
+
 
     @RequestMapping(path = "/index", method = RequestMethod.GET)
     public String getIndexPage(Model model, Page page, @RequestParam(name = "orderMode", defaultValue = "0") int orderMode) {
@@ -51,6 +55,11 @@ public class HomeController implements CommunityConstant {
                 // 查询点赞
                 final long likeCount = likeService.findEntityLikeCount(ENTITY_TYPE_POST, post.getId());
                 map.put("likeCount", likeCount);
+
+                // 查询阅读数量
+                int readCount = readingService.readCount(post.getId());
+                map.put("readCount", readCount);
+
                 discussPosts.add(map);
             }
         }

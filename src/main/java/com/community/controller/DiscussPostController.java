@@ -2,10 +2,7 @@ package com.community.controller;
 
 import com.community.entity.*;
 import com.community.event.EventProducer;
-import com.community.service.CommentService;
-import com.community.service.DiscussPostService;
-import com.community.service.LikeService;
-import com.community.service.UserService;
+import com.community.service.*;
 import com.community.util.CommunityConstant;
 import com.community.util.CommunityUtil;
 import com.community.util.HostHolder;
@@ -48,7 +45,10 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private RedisTemplate redisTemplate;
 
+    @Autowired
+    private ReadingService readingService;
 
+    // 发帖
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost(String title, String content) {
@@ -77,7 +77,8 @@ public class DiscussPostController implements CommunityConstant {
         // 计算帖子分数
         String redisKey = RedisKeyUtil.getPostScoreKey();
         redisTemplate.opsForSet().add(redisKey, discussPost.getId());
-
+        // 初始化帖子阅读数量
+        readingService.initReading(discussPost.getId());
 
         return CommunityUtil.getJSONString(0, "发布成功");
     }
@@ -104,6 +105,11 @@ public class DiscussPostController implements CommunityConstant {
             likeStatus = likeService.findEntityLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_POST, discussPostId);
         }
         model.addAttribute("likeStatus", likeStatus);
+
+        // 阅读数量
+        readingService.reading(discussPostId);
+        long readCount = readingService.readCount(discussPostId);
+        model.addAttribute("readCount", readCount);
 
         // 评论分页信息
         page.setLimit(5);
@@ -175,6 +181,8 @@ public class DiscussPostController implements CommunityConstant {
                 commentVoList.add(commentVo);
             }
         }
+
+
 
         model.addAttribute("comments", commentVoList);
 

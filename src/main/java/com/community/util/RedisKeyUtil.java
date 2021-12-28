@@ -31,6 +31,10 @@ public class RedisKeyUtil {
     // 存储帖子分数
     private static final String PREFIX_POST = "post";
 
+    // 帖子阅读量
+    private static final String PREFIX_POST_READING = "reading:post";
+    private static final String PREFIX_USER_READING = "reading:user";
+
     // 某个实体的赞
     // like:entity:entityType:entityId -> set(userId)
     public static String getEntityLikeKey(int entityType, int entityId) {
@@ -94,7 +98,18 @@ public class RedisKeyUtil {
     // 帖子分数
     public static String getPostScoreKey() {
         return PREFIX_POST + SPLIT + "score";
+    }
 
+    // 某个帖子的阅读量
+    // reading:user:userID -> int
+    public static String getPostReadingKey(int postId) {
+        return PREFIX_POST_READING + SPLIT + postId;
+    }
+
+    // 某个用户的帖子的阅读量
+    // reading:user:userID -> int
+    public static String getUserReadingKey(int userId) {
+        return PREFIX_USER_READING + SPLIT + userId;
     }
 
 }
