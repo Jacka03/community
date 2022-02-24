@@ -8,6 +8,7 @@ import com.aliyuncs.profile.IClientProfile;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
 import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.community.annotation.LoginRequired;
+import com.community.dao.UserMapper;
 import com.community.entity.User;
 import com.community.service.FollowService;
 import com.community.service.LikeService;
@@ -16,6 +17,7 @@ import com.community.util.*;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
 import org.apache.commons.lang3.StringUtils;
+import org.jacoco.agent.rt.internal_1f1cc91.core.internal.Pack200Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/user")
@@ -111,6 +114,28 @@ public class UserController implements CommunityConstant {
         userService.updateHeader(hostHolder.getUser().getId(), url);
 
         return CommunityUtil.getJSONString(0);
+    }
+
+    // 更改密码
+    @RequestMapping(path = "/changepsw", method = RequestMethod.POST)
+    public String changepsw(Model model, String old_password,
+                            String new_password, String confirm_password) {
+
+        User user = hostHolder.getUser();
+        Map<String, Object> map = userService.changepsw(old_password, new_password, confirm_password, user);
+
+        if(map == null || map.isEmpty()) {
+            // 成功
+            model.addAttribute("msg", "修改成功！请重新登录。");
+            model.addAttribute("target", "/index");
+            return "/site/login";
+        }
+
+        // 修改失败
+        model.addAttribute("old_passwordMsg", map.get("old_passwordMsg"));
+        model.addAttribute("new_passwordMsg", map.get("new_passwordMsg"));
+        model.addAttribute("confirm_passwordMsg", map.get("confirm_passwordMsg"));
+        return "/site/setting";
     }
 
     // 不使用

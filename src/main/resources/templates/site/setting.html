@@ -138,12 +138,14 @@
 
 					<!-- 修改密码 -->
 					<h6 class="text-left text-info border-bottom pb-2 mt-5">修改密码</h6>
-					<form class="mt-5">
+					<form class="mt-5"  method="post" th:action="@{/user/changepsw}">
 						<div class="form-group row mt-4">
 							<label for="old-password" class="col-sm-2 col-form-label text-right">原密码:</label>
 							<div class="col-sm-10">
-								<input type="password" class="form-control" id="old-password" placeholder="请输入原始密码!" required>
-								<div class="invalid-feedback">
+								<input type="password" th:class="|form-control ${old_passwordMsg!=null?'is-invalid':''}|"
+									   th:value="${param.old_password}"
+									   id="old-password" name="old_password" placeholder="请输入原始密码!" required>
+								<div class="invalid-feedback" th:text="${old_passwordMsg}">
 									密码长度不能小于8位!
 								</div>
 							</div>
@@ -151,8 +153,10 @@
 						<div class="form-group row mt-4">
 							<label for="new-password" class="col-sm-2 col-form-label text-right">新密码:</label>
 							<div class="col-sm-10">
-								<input type="password" class="form-control" id="new-password" placeholder="请输入新的密码!" required>
-								<div class="invalid-feedback">
+								<input type="password" th:class="|form-control ${new_passwordMsg!=null?'is-invalid':''}|"
+									   th:value="${param.new_password}"
+									   id="new-password" name="new_password" placeholder="请输入新的密码!" required>
+								<div class="invalid-feedback" th:text="${new_passwordMsg}">
 									密码长度不能小于8位!
 								</div>
 							</div>
@@ -160,8 +164,10 @@
 						<div class="form-group row mt-4">
 							<label for="confirm-password" class="col-sm-2 col-form-label text-right">确认密码:</label>
 							<div class="col-sm-10">
-								<input type="password" class="form-control" id="confirm-password" placeholder="再次输入新密码!" required>
-								<div class="invalid-feedback">
+								<input type="password" th:class="|form-control ${confirm_passwordMsg!=null?'is-invalid':''}|"
+									   th:value="${param.confirm_password}"
+									   id="confirm-password" name="confirm_password" placeholder="再次输入新密码!" required>
+								<div class="invalid-feedback" th:text="${confirm_passwordMsg}">
 									两次输入的密码不一致!
 								</div>
 							</div>
