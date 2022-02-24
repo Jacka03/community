@@ -12,10 +12,7 @@ import com.community.entity.User;
 import com.community.service.FollowService;
 import com.community.service.LikeService;
 import com.community.service.UserService;
-import com.community.util.CommunityConstant;
-import com.community.util.CommunityUtil;
-import com.community.util.HostHolder;
-import com.community.util.RedisKeyUtil;
+import com.community.util.*;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
 import org.apache.commons.lang3.StringUtils;
@@ -65,24 +62,6 @@ public class UserController implements CommunityConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
-    /*@Value("${aliyun.AccessKeyID}")
-    private String AccessKeyId;
-
-    @Value("${aliyun.AccessKeySecret}")
-    private String accessKeySecret;
-
-    @Value("${aliyun.bucket.header.name}")
-    private String headerBucketName;
-
-    @Value("${aliyun.bucket.header.endpoint}")
-    private String endpoint;
-
-    @Value("${aliyun.bucket.header.oss}")
-    private String oss;
-
-    @Value("${aliyun.roleArn}")
-    private String roleArn;*/
-
     @Value("${qiniu.key.access}")
     private String accessKey;
 
@@ -95,69 +74,15 @@ public class UserController implements CommunityConstant {
     @Value("${quniu.bucket.header.url}")
     private String headerBucketUrl;
 
+    @Autowired
+    private AliyunUtil aliyunUtil;
+
+    @Value("${aliyun.bucket.header.url}")
+    private String headerUrl;
+
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
     public String getSettingPage(Model model) {
-        /*// STS接入地址，例如sts.cn-hangzhou.aliyuncs.com。
-        // 填写步骤1生成的访问密钥AccessKey ID和AccessKey Secret。
-        // 填写步骤3获取的角色ARN。
-        // 自定义角色会话名称，用来区分不同的令牌，例如可填写为SessionTest。
-        String roleSessionName = "community";
-        // 以下Policy用于限制仅允许使用临时访问凭证向目标存储空间examplebucket上传文件。
-        // 临时访问凭证最后获得的权限是步骤4设置的角色权限和该Policy设置权限的交集，即仅允许将文件上传至目标存储空间examplebucket下的exampledir目录。
-        String policy = "{\n" +
-                "    \"Version\": \"1\", \n" +
-                "    \"Statement\": [\n" +
-                "        {\n" +
-                "            \"Action\": [\n" +
-                "                \"oss:PutObject\"\n" +
-                "            ], \n" +
-                "            \"Resource\": [\n" +
-                "                \"acs:oss:*:*:"+headerBucketName+"/*\" \n" +
-                "            ], \n" +
-                "            \"Effect\": \"Allow\"\n" +
-                "        }\n" +
-                "    ]\n" +
-                "}";
-        try {
-            // regionId表示RAM的地域ID。以华东1（杭州）地域为例，regionID填写为cn-hangzhou。也可以保留默认值，默认值为空字符串（""）。
-            String regionId = "cn-zhangjiakou";
-            // 添加endpoint。
-            DefaultProfile.addEndpoint(regionId, "Sts", endpoint);
-            // 构造default profile。
-            IClientProfile profile = DefaultProfile.getProfile(regionId, AccessKeyId, accessKeySecret);
-            // 构造client。
-            DefaultAcsClient client = new DefaultAcsClient(profile);
-            final AssumeRoleRequest request = new AssumeRoleRequest();
-            request.setSysMethod(MethodType.POST);
-            request.setRoleArn(roleArn);
-            request.setRoleSessionName(roleSessionName);
-            // 如果policy为空，则用户将获得该角色下所有权限。
-            request.setPolicy(policy);
-            // 设置临时访问凭证的有效时间为3600秒。
-            request.setDurationSeconds(3600L);
-            final AssumeRoleResponse response = client.getAcsResponse(request);
-            model.addAttribute("Expiration", response.getCredentials().getExpiration());
-            model.addAttribute("AccessKeyId", response.getCredentials().getAccessKeyId());
-            model.addAttribute("AccessKeySecret", response.getCredentials().getAccessKeySecret());
-            model.addAttribute("SecurityToken", response.getCredentials().getSecurityToken());
-            model.addAttribute("RequestId", response.getRequestId());
-            model.addAttribute("regionId", regionId);
-            model.addAttribute("bucket", headerBucketName);
-
-            // 上传文件名称
-            String fileName = CommunityUtil.generateUUID();
-            model.addAttribute("fileName", fileName);
-
-            System.out.println("Expiration: " + response.getCredentials().getExpiration());
-            System.out.println("Access Key Id: " + response.getCredentials().getAccessKeyId());
-            System.out.println("Access Key Secret: " + response.getCredentials().getAccessKeySecret());
-            System.out.println("Security Token: " + response.getCredentials().getSecurityToken());
-            System.out.println("RequestId: " + response.getRequestId());
-
-        } catch (ClientException e) {
-            e.printStackTrace();
-        }*/
 
         // 上传文件名称
         String fileName = CommunityUtil.generateUUID();
@@ -204,25 +129,35 @@ public class UserController implements CommunityConstant {
             return "/site/setting";
         }
 
+        // filename = CommunityUtil.generateUUID() + suffix;
+        // File file = new File(uploadPath + "/" + filename);
+        //
+        // try {
+        //     headerImage.transferTo(file);
+        // } catch (IOException e) {
+        //     logger.error("上传文件错误", e.getMessage());
+        //     throw new RuntimeException("上传文件失败，服务器异常", e);
+        // }
+        //
+        // // 更新当前用户的头像的路径(web访问路径)
+        // // http://localhost:8080/community/user/header/xxx.png
+        //
+        // User user = hostHolder.getUser();
+        // String headerUrl = domainPath + contextPath + "/user/header/" + filename;
+
+
         filename = CommunityUtil.generateUUID() + suffix;
-        File file = new File(uploadPath + "/" + filename);
 
         try {
-            headerImage.transferTo(file);
+            aliyunUtil.upload2Aliyun(headerImage.getBytes(), filename);
         } catch (IOException e) {
             logger.error("上传文件错误", e.getMessage());
             throw new RuntimeException("上传文件失败，服务器异常", e);
         }
 
-        // 更新当前用户的头像的路径(web访问路径)
-        // http://localhost:8080/community/user/header/xxx.png
+        String url = headerUrl + "/" + filename;
+        userService.updateHeader(hostHolder.getUser().getId(), url);
 
-        User user = hostHolder.getUser();
-        String headerUrl = domainPath + contextPath + "/user/header/" + filename;
-
-        userService.updateHeader(user.getId(), headerUrl);
-
-        // System.out.println("test");
         return "redirect:/index";
     }
 
