@@ -7,8 +7,6 @@ import com.community.util.CommunityConstant;
 import com.community.util.CommunityUtil;
 import com.community.util.HostHolder;
 import com.community.util.RedisKeyUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
@@ -108,7 +106,7 @@ public class DiscussPostController implements CommunityConstant {
 
         // 阅读数量
         readingService.reading(discussPostId);
-        long readCount = readingService.readCount(discussPostId);
+        long readCount = readingService.findPostReadCount(discussPostId);
         model.addAttribute("readCount", readCount);
 
         // 评论分页信息

@@ -1,23 +1,14 @@
 package com.community.controller;
 
-import com.aliyuncs.DefaultAcsClient;
-import com.aliyuncs.exceptions.ClientException;
-import com.aliyuncs.http.MethodType;
-import com.aliyuncs.profile.DefaultProfile;
-import com.aliyuncs.profile.IClientProfile;
-import com.aliyuncs.sts.model.v20150401.AssumeRoleRequest;
-import com.aliyuncs.sts.model.v20150401.AssumeRoleResponse;
 import com.community.annotation.LoginRequired;
-import com.community.dao.UserMapper;
+import com.community.entity.DiscussPost;
+import com.community.entity.Page;
 import com.community.entity.User;
-import com.community.service.FollowService;
-import com.community.service.LikeService;
-import com.community.service.UserService;
+import com.community.service.*;
 import com.community.util.*;
 import com.qiniu.util.Auth;
 import com.qiniu.util.StringMap;
 import org.apache.commons.lang3.StringUtils;
-import org.jacoco.agent.rt.internal_1f1cc91.core.internal.Pack200Streams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -82,6 +74,12 @@ public class UserController implements CommunityConstant {
 
     @Value("${aliyun.bucket.header.url}")
     private String headerUrl;
+
+    @Autowired
+    private DiscussPostService discussPostService;
+
+    @Autowired
+    private ReadingService readingService;
 
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
@@ -209,6 +207,7 @@ public class UserController implements CommunityConstant {
     }
 
     // 个人主页
+    // 个人信息
     @RequestMapping(path = "/profile/{userId}", method = RequestMethod.GET)
     public String getProfilePage(@PathVariable("userId") int userId, Model model) {
         final User user = userService.findUserById(userId);
@@ -239,6 +238,40 @@ public class UserController implements CommunityConstant {
         model.addAttribute("hasFollowed", hasFollowed);
 
         return "/site/profile";
+    }
+
+    // 我的帖子
+    @RequestMapping(path = "/myPost/{userId}", method = RequestMethod.GET)
+    public String getMyPost(@PathVariable("userId") int userId, Page page, Model model) {
+        User user = userService.findUserById(userId);
+        page.setRows(discussPostService.findDiscussPostRows(userId));
+        // orderMode = 0 不使用缓存
+        List<DiscussPost> list = discussPostService.findDiscussPosts(userId, page.getOffset(), page.getLimit(), 0);
+        List<Map<String, Object>> discussPosts = new ArrayList<>();
+        if(list != null) {
+            for(DiscussPost post : list) {
+                // 帖子
+                Map<String, Object> map = new HashMap<>();
+                map.put("post", post);
+
+                // 点赞
+                long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, post.getId());
+                map.put("likeCount", likeCount);
+
+                // 阅读量
+                int readCount = readingService.findPostReadCount(post.getId());
+                map.put("readCount", readCount);
+
+                discussPosts.add(map);
+            }
+        }
+
+        // 用户
+        model.addAttribute("user", user);
+        model.addAttribute("postCount", list.size());
+        model.addAttribute("discussPosts", discussPosts);
+
+        return "/site/my-post";
     }
 
 }

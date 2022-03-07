@@ -34,7 +34,7 @@ public class ReadingService {
     }
 
     // 获取帖子的阅读数量
-    public int readCount(int postId) {
+    public int findPostReadCount(int postId) {
         String redisKey = RedisKeyUtil.getPostReadingKey(postId);
         Integer readCount = (Integer) redisTemplate.opsForValue().get(redisKey);
         if(readCount == null) {

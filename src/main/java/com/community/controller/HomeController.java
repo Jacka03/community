@@ -61,7 +61,7 @@ public class HomeController implements CommunityConstant {
                 map.put("likeCount", likeCount);
 
                 // 查询阅读数量
-                int readCount = readingService.readCount(post.getId());
+                int readCount = readingService.findPostReadCount(post.getId());
                 map.put("readCount", readCount);
 
                 discussPosts.add(map);
