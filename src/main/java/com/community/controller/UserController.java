@@ -1,6 +1,7 @@
 package com.community.controller;
 
 import com.community.annotation.LoginRequired;
+import com.community.entity.Comment;
 import com.community.entity.DiscussPost;
 import com.community.entity.Page;
 import com.community.entity.User;
@@ -80,6 +81,9 @@ public class UserController implements CommunityConstant {
 
     @Autowired
     private ReadingService readingService;
+
+    @Autowired
+    private CommentService commentService;
 
     @LoginRequired
     @RequestMapping(path = "/setting", method = RequestMethod.GET)
@@ -244,7 +248,8 @@ public class UserController implements CommunityConstant {
     @RequestMapping(path = "/myPost/{userId}", method = RequestMethod.GET)
     public String getMyPost(@PathVariable("userId") int userId, Page page, Model model) {
         User user = userService.findUserById(userId);
-        page.setRows(discussPostService.findDiscussPostRows(userId));
+        int postCount = discussPostService.findDiscussPostRows(userId);
+        page.setRows(postCount);
         // orderMode = 0 不使用缓存
         List<DiscussPost> list = discussPostService.findDiscussPosts(userId, page.getOffset(), page.getLimit(), 0);
         List<Map<String, Object>> discussPosts = new ArrayList<>();
@@ -268,10 +273,43 @@ public class UserController implements CommunityConstant {
 
         // 用户
         model.addAttribute("user", user);
-        model.addAttribute("postCount", list.size());
+        model.addAttribute("postCount", postCount);
         model.addAttribute("discussPosts", discussPosts);
 
         return "/site/my-post";
+    }
+
+    // 个人信息-我的回复
+    @RequestMapping(path = "/myReply/{userId}", method = RequestMethod.GET)
+    public String getMyReply(Model model, Page page, @PathVariable("userId") int userId) {
+        // 只查询回复帖子，不查询回复评论
+        User user = userService.findUserById(userId);
+        int commentCount = commentService.findCommentRows(userId, ENTITY_TYPE_POST);
+        page.setRows(commentCount);
+
+        List<Comment> list = commentService.findCommentsByUserId(userId, ENTITY_TYPE_POST, page.getOffset(), page.getLimit());
+        List<Map<String, Object>> comments = new ArrayList<>();
+
+        if(list != null) {
+            for(Comment com : list) {
+                Map<String, Object> map = new HashMap<>();
+
+                map.put("comment", com);
+
+                // 获取评论的帖子
+                DiscussPost post = discussPostService.findDiscussPostById(com.getEntityId());
+                map.put("postTitle", post.getTitle());
+                map.put("postId", post.getId());
+
+                comments.add(map);
+            }
+        }
+
+        model.addAttribute("user", user);
+        model.addAttribute("commentCount", commentCount);
+        model.addAttribute("comments", comments);
+
+        return "/site/my-reply";
     }
 
 }

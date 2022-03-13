@@ -59,4 +59,15 @@ public class CommentService implements CommunityConstant {
         return commentMapper.selectCommentById(id);
     }
 
+    public int findCommentRows(int userId, int entityType) {
+        // 查找该用户对帖子的评论的总数
+        return commentMapper.selectCommentRows(userId, entityType);
+
+    }
+
+    public List<Comment> findCommentsByUserId(int userId, int entityType, int offset, int limit) {
+
+        return commentMapper.selectCommentsByUserId(userId, entityType, offset, limit);
+    }
+
 }
